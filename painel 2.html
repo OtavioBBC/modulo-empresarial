@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Interativo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b1220;
+      --bg-2: #111b2e;
+      --panel: #122038;
+      --panel-2: #162744;
+      --panel-3: #1a2f52;
+      --line: rgba(148, 163, 184, 0.18);
+      --line-strong: rgba(125, 211, 252, 0.25);
+      --text: #e6eefb;
+      --muted: #94a3b8;
+      --soft: #c7d2fe;
+      --primary: #38bdf8;
+      --primary-2: #60a5fa;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --chip-bg: rgba(255,255,255,0.05);
+      --shadow: 0 12px 32px rgba(0,0,0,0.28);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --radius-xs: 10px;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(96,165,250,0.10), transparent 24%),
+        linear-gradient(180deg, #09111f 0%, #0b1220 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      background: rgba(11, 18, 32, 0.82);
+      border-bottom: 1px solid var(--line);
+      padding: 18px 18px 14px;
+    }
+
+    .topbar-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(96,165,250,0.18));
+      border: 1px solid var(--line-strong);
+      font-size: 20px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      background: rgba(255,255,255,0.07);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(56,189,248,0.22), rgba(96,165,250,0.14));
+      border-color: rgba(56,189,248,0.32);
+    }
+
+    .btn-danger {
+      color: #fecaca;
+      border-color: rgba(239,68,68,0.22);
+      background: rgba(127, 29, 29, 0.18);
+    }
+
+    .resource-bar {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .resource-card {
+      background: linear-gradient(180deg, rgba(18,32,56,0.95), rgba(20,36,63,0.92));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .resource-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .resource-meta {
+      display: flex;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .resource-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(56,189,248,0.12);
+      border: 1px solid rgba(56,189,248,0.18);
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+
+    .resource-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .resource-value {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      word-break: break-word;
+    }
+
+    .resource-delta {
+      font-size: 12px;
+      font-weight: 700;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--chip-bg);
+      border: 1px solid transparent;
+    }
+
+    .delta-up {
+      color: #86efac;
+      background: rgba(34,197,94,0.12);
+      border-color: rgba(34,197,94,0.18);
+    }
+
+    .delta-down {
+      color: #fca5a5;
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.18);
+    }
+
+    .icon-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.18s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--line-strong);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .ticker {
+      margin: 18px;
+      margin-top: 16px;
+      background: rgba(18,32,56,0.72);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      overflow: auto;
+      box-shadow: var(--shadow);
+    }
+
+    .ticker-title {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .ticker-items {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ticker-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--soft);
+    }
+
+    .main {
+      padding: 0 18px 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .section-title {
+      grid-column: 1 / -1;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-top: 4px;
+      margin-bottom: -2px;
+    }
+
+    .module {
+      background: linear-gradient(180deg, rgba(18,32,56,0.96), rgba(19,33,58,0.92));
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .module.wide {
+      grid-column: span 2;
+    }
+
+    .module-header {
+      padding: 16px 16px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .module-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .module-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: rgba(56,189,248,0.12);
+      border: 1px solid rgba(56,189,248,0.18);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .module-name {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .module-status {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .status-ok {
+      color: #86efac;
+      background: rgba(34,197,94,0.12);
+      border-color: rgba(34,197,94,0.18);
+    }
+
+    .status-warn {
+      color: #fcd34d;
+      background: rgba(245,158,11,0.12);
+      border-color: rgba(245,158,11,0.18);
+    }
+
+    .status-danger {
+      color: #fca5a5;
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.18);
+    }
+
+    .module-body {
+      padding: 14px 16px 16px;
+    }
+
+    .module-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .module-stats {
+      display: grid;
+      gap: 10px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 13px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(148,163,184,0.12);
+      border-radius: 14px;
+    }
+
+    .stat-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--soft);
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .stat-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .stat-value {
+      font-size: 15px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    .badge-green {
+      color: #86efac;
+      background: rgba(34,197,94,0.12);
+      border-color: rgba(34,197,94,0.18);
+    }
+
+    .badge-red {
+      color: #fca5a5;
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.18);
+    }
+
+    .badge-amber {
+      color: #fcd34d;
+      background: rgba(245,158,11,0.12);
+      border-color: rgba(245,158,11,0.18);
+    }
+
+    .badge-blue {
+      color: #93c5fd;
+      background: rgba(59,130,246,0.12);
+      border-color: rgba(59,130,246,0.18);
+    }
+
+    .progress-wrap {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      transition: width 0.25s ease;
+      border-radius: 999px;
+    }
+
+    .fill-green { background: linear-gradient(90deg, #16a34a, #22c55e); }
+    .fill-amber { background: linear-gradient(90deg, #d97706, #f59e0b); }
+    .fill-red { background: linear-gradient(90deg, #dc2626, #ef4444); }
+    .fill-blue { background: linear-gradient(90deg, #0ea5e9, #3b82f6); }
+
+    .wide-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .subpanel {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(148,163,184,0.10);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .subpanel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--soft);
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .footer {
+      margin: 0 18px 18px;
+      background: rgba(18,32,56,0.72);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .footer strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 8, 23, 0.62);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 120;
+      padding: 18px;
+    }
+
+    .overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: linear-gradient(180deg, #13233d 0%, #101c31 100%);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .modal-body {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: rgba(56,189,248,0.35);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.10);
+    }
+
+    .modal-footer {
+      padding: 16px 18px 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .small-note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .notice {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 13px;
+      z-index: 200;
+      transition: 0.22s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .notice.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1200px) {
+      .resource-bar {
+        grid-template-columns: repeat(3, minmax(180px, 1fr));
+      }
+      .main {
+        grid-template-columns: 1fr 1fr;
+      }
+      .module.wide {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .resource-bar,
+      .main,
+      .wide-grid,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .module.wide {
+        grid-column: span 1;
+      }
+
+      .topbar-row {
+        align-items: flex-start;
+      }
+
+      .footer {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-row">
+        <div class="brand">
+          <div class="brand-badge" id="brandShield">⚡</div>
+          <div class="brand-text">
+            <h1 id="brandName">Meu Painel</h1>
+            <p id="brandSubtitle">Indicadores atualizados de forma simples</p>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary" id="editGeneralBtn">Editar painel</button>
+          <button class="btn" id="editTickerBtn">Editar avisos</button>
+          <button class="btn" id="exportBtn">Exportar JSON</button>
+          <button class="btn btn-danger" id="resetBtn">Resetar</button>
+        </div>
+      </div>
+
+      <div class="resource-bar" id="resourceBar"></div>
+    </header>
+
+    <section class="ticker">
+      <div class="ticker-title">Avisos</div>
+      <div class="ticker-items" id="tickerItems"></div>
+    </section>
+
+    <main class="main">
+      <div class="section-title" id="sectionLabel">Indicadores principais</div>
+
+      <section class="module" data-module="sales">
+        <div class="module-header">
+          <div class="module-title-wrap">
+            <div class="module-icon" id="salesIcon">💼</div>
+            <div class="module-name" id="salesName">Vendas</div>
+          </div>
+          <div class="module-status status-ok" id="salesStatus">Saudável</div>
+        </div>
+        <div class="module-body">
+          <div class="module-actions">
+            <button class="btn" onclick="openStatModal('sales', 'main', null)">Adicionar item</button>
+            <button class="btn" onclick="openModuleSettings('sales')">Configurar módulo</button>
+          </div>
+          <div class="module-stats" id="salesStats"></div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span id="salesProgressLabel">Meta do mês</span>
+              <span id="salesProgressValue">78%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-blue" id="salesProgressFill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module" data-module="marketing">
+        <div class="module-header">
+          <div class="module-title-wrap">
+            <div class="module-icon" id="marketingIcon">📣</div>
+            <div class="module-name" id="marketingName">Marketing</div>
+          </div>
+          <div class="module-status status-warn" id="marketingStatus">Atenção</div>
+        </div>
+        <div class="module-body">
+          <div class="module-actions">
+            <button class="btn" onclick="openStatModal('marketing', 'main', null)">Adicionar item</button>
+            <button class="btn" onclick="openModuleSettings('marketing')">Configurar módulo</button>
+          </div>
+          <div class="module-stats" id="marketingStats"></div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span id="marketingProgressLabel">Verba do mês</span>
+              <span id="marketingProgressValue">61%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-amber" id="marketingProgressFill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module" data-module="finance">
+        <div class="module-header">
+          <div class="module-title-wrap">
+            <div class="module-icon" id="financeIcon">💰</div>
+            <div class="module-name" id="financeName">Financeiro</div>
+          </div>
+          <div class="module-status status-ok" id="financeStatus">Saudável</div>
+        </div>
+        <div class="module-body">
+          <div class="module-actions">
+            <button class="btn" onclick="openStatModal('finance', 'main', null)">Adicionar item</button>
+            <button class="btn" onclick="openModuleSettings('finance')">Configurar módulo</button>
+          </div>
+          <div class="module-stats" id="financeStats"></div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span id="financeProgressLabel">Lucro vs meta</span>
+              <span id="financeProgressValue">88%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-green" id="financeProgressFill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module" data-module="execution">
+        <div class="module-header">
+          <div class="module-title-wrap">
+            <div class="module-icon" id="executionIcon">🛠️</div>
+            <div class="module-name" id="executionName">Execução</div>
+          </div>
+          <div class="module-status status-warn" id="executionStatus">Atenção</div>
+        </div>
+        <div class="module-body">
+          <div class="module-actions">
+            <button class="btn" onclick="openStatModal('execution', 'main', null)">Adicionar item</button>
+            <button class="btn" onclick="openModuleSettings('execution')">Configurar módulo</button>
+          </div>
+          <div class="module-stats" id="executionStats"></div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span id="executionProgressLabel">Capacidade</span>
+              <span id="executionProgressValue">72%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-blue" id="executionProgressFill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module" data-module="customers">
+        <div class="module-header">
+          <div class="module-title-wrap">
+            <div class="module-icon" id="customersIcon">🤝</div>
+            <div class="module-name" id="customersName">Clientes</div>
+          </div>
+          <div class="module-status status-ok" id="customersStatus">Saudável</div>
+        </div>
+        <div class="module-body">
+          <div class="module-actions">
+            <button class="btn" onclick="openStatModal('customers', 'main', null)">Adicionar item</button>
+            <button class="btn" onclick="openModuleSettings('customers')">Configurar módulo</button>
+          </div>
+          <div class="module-stats" id="customersStats"></div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span id="customersProgressLabel">Satisfação geral</span>
+              <span id="customersProgressValue">91%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fill-green" id="customersProgressFill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="module wide" data-module="tools">
+        <div class="module-header">
+          <div class="module-title-wrap">
+            <div class="module-icon" id="toolsIcon">⚙️</div>
+            <div class="module-name" id="toolsName">Ferramentas & Infra</div>
+          </div>
+          <div class="module-status status-ok" id="toolsStatus">Saudável</div>
+        </div>
+        <div class="module-body">
+          <div class="module-actions">
+            <button class="btn" onclick="openModuleSettings('tools')">Configurar módulo</button>
+          </div>
+          <div class="wide-grid">
+            <div class="subpanel">
+              <div class="subpanel-title">
+                <span>Coluna 1</span>
+                <button class="btn" onclick="openStatModal('tools', 'left', null)">Adicionar item</button>
+              </div>
+              <div class="module-stats" id="toolsLeftStats"></div>
+              <div class="progress-wrap">
+                <div class="progress-label">
+                  <span id="toolsLeftProgressLabel">Uptime do mês</span>
+                  <span id="toolsLeftProgressValue">99%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-blue" id="toolsLeftProgressFill"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="subpanel">
+              <div class="subpanel-title">
+                <span>Coluna 2</span>
+                <button class="btn" onclick="openStatModal('tools', 'right', null)">Adicionar item</button>
+              </div>
+              <div class="module-stats" id="toolsRightStats"></div>
+              <div class="progress-wrap">
+                <div class="progress-label">
+                  <span id="toolsRightProgressLabel">Integrações</span>
+                  <span id="toolsRightProgressValue">79%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-amber" id="toolsRightProgressFill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div><strong id="footerStatus">Sistema ativo</strong></div>
+      <div id="footerBrand">Meu Painel — v1</div>
+      <div id="footerSync">Última atualização: agora</div>
+    </footer>
+  </div>
+
+  <div class="overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Editar</div>
+        <button class="icon-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <div class="notice" id="notice"></div>
+
+  <script>
+    const STORAGE_KEY = "dashboard-modern-v3";
+
+    const defaultData = {
+      brand: {
+        name: "Meu Painel",
+        shield: "⚡",
+        subtitle: "Indicadores atualizados de forma simples"
+      },
+      sectionLabel: "Indicadores principais",
+      footer: {
+        status: "Sistema ativo",
+        brand: "Meu Painel — v1",
+        sync: "Última atualização: agora"
+      },
+      ticker: [
+        "2 propostas aguardando aprovação",
+        "Campanha de leads com boa performance",
+        "Financeiro atualizado até ontem"
+      ],
+      resources: [
+        { icon: "💰", label: "Caixa", value: "R$84.300", delta: "↑ 12%", deltaClass: "delta-up" },
+        { icon: "📈", label: "Faturamento", value: "R$142.700", delta: "↑ 8%", deltaClass: "delta-up" },
+        { icon: "👥", label: "Clientes ativos", value: "37", delta: "↑ 3", deltaClass: "delta-up" },
+        { icon: "⭐", label: "Avaliação", value: "4,8 / 5", delta: "↑ 0,2", deltaClass: "delta-up" },
+        { icon: "⚠️", label: "Alertas", value: "3", delta: "↑ 1", deltaClass: "delta-down" }
+      ],
+      modules: {
+        sales: {
+          icon: "💼",
+          name: "Vendas",
+          statusText: "Saudável",
+          statusClass: "status-ok",
+          progressLabel: "Meta do mês",
+          progressValue: 78,
+          progressClass: "fill-blue",
+          stats: [
+            { label: "Leads hoje", value: "14", badgeText: "+4", badgeClass: "badge-green" },
+            { label: "Taxa de conversão", value: "28%", badgeText: "Alta", badgeClass: "badge-green" },
+            { label: "Orçamentos enviados", value: "7", badgeText: "Pendente", badgeClass: "badge-amber" }
+          ]
+        },
+        marketing: {
+          icon: "📣",
+          name: "Marketing",
+          statusText: "Atenção",
+          statusClass: "status-warn",
+          progressLabel: "Verba do mês",
+          progressValue: 61,
+          progressClass: "fill-amber",
+          stats: [
+            { label: "Posts publicados hoje", value: "3", badgeText: "OK", badgeClass: "badge-green" },
+            { label: "Criativos ativos", value: "12", badgeText: "Teste A/B", badgeClass: "badge-blue" },
+            { label: "CAC atual", value: "R$248", badgeText: "↑", badgeClass: "badge-amber" }
+          ]
+        },
+        finance: {
+          icon: "💰",
+          name: "Financeiro",
+          statusText: "Saudável",
+          statusClass: "status-ok",
+          progressLabel: "Lucro vs meta",
+          progressValue: 88,
+          progressClass: "fill-green",
+          stats: [
+            { label: "Margem líquida", value: "34%", badgeText: "Saudável", badgeClass: "badge-green" },
+            { label: "Despesas do mês", value: "R$94.200", badgeText: "↑ 5%", badgeClass: "badge-amber" },
+            { label: "Contas a receber", value: "R$38.500", badgeText: "", badgeClass: "" }
+          ]
+        },
+        execution: {
+          icon: "🛠️",
+          name: "Execução",
+          statusText: "Atenção",
+          statusClass: "status-warn",
+          progressLabel: "Capacidade",
+          progressValue: 72,
+          progressClass: "fill-blue",
+          stats: [
+            { label: "Pedidos em fila", value: "18", badgeText: "Moderado", badgeClass: "badge-amber" },
+            { label: "Produzidos hoje", value: "9", badgeText: "", badgeClass: "" },
+            { label: "Prazo médio", value: "4,2 dias", badgeText: "", badgeClass: "" }
+          ]
+        },
+        customers: {
+          icon: "🤝",
+          name: "Clientes",
+          statusText: "Saudável",
+          statusClass: "status-ok",
+          progressLabel: "Satisfação geral",
+          progressValue: 91,
+          progressClass: "fill-green",
+          stats: [
+            { label: "Tickets abertos", value: "6", badgeText: "3 urgentes", badgeClass: "badge-amber" },
+            { label: "NPS atual", value: "72", badgeText: "Promotor", badgeClass: "badge-green" },
+            { label: "Churn do mês", value: "1,4%", badgeText: "Baixo", badgeClass: "badge-green" }
+          ]
+        },
+        tools: {
+          icon: "⚙️",
+          name: "Ferramentas & Infra",
+          statusText: "Saudável",
+          statusClass: "status-ok",
+          progressLabel: "Uptime do mês",
+          progressValue: 99,
+          progressClass: "fill-blue",
+          stats: [
+            { label: "Ferramentas ativas", value: "14", badgeText: "OK", badgeClass: "badge-green" },
+            { label: "Integrações sincronizadas", value: "11/14", badgeText: "3 falhas", badgeClass: "badge-amber" }
+          ],
+          rightProgressLabel: "Integrações",
+          rightProgressValue: 79,
+          rightProgressClass: "fill-amber",
+          rightStats: [
+            { label: "Custo stack / mês", value: "R$2.340", badgeText: "", badgeClass: "" },
+            { label: "Licenças expirando", value: "2", badgeText: "Renovar", badgeClass: "badge-red" }
+          ]
+        }
+      }
+    };
+
+    let data = loadData();
+
+    window.addEventListener("beforeunload", () => {
+  saveData();
+});
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function mergeDefaults(base, saved) {
+      const out = deepClone(base);
+      Object.keys(saved || {}).forEach(key => {
+        if (
+          saved[key] &&
+          typeof saved[key] === "object" &&
+          !Array.isArray(saved[key]) &&
+          out[key] &&
+          typeof out[key] === "object" &&
+          !Array.isArray(out[key])
+        ) {
+          out[key] = mergeDefaults(out[key], saved[key]);
+        } else {
+          out[key] = saved[key];
+        }
+      });
+      return out;
+    }
+
+    function loadData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return deepClone(defaultData);
+        return mergeDefaults(defaultData, JSON.parse(saved));
+      } catch {
+        return deepClone(defaultData);
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function showNotice(message) {
+      const el = document.getElementById("notice");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(showNotice._timer);
+      showNotice._timer = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function esc(text) {
+      return String(text ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function renderGeneral() {
+      document.getElementById("brandShield").textContent = data.brand.shield || "⚡";
+      document.getElementById("brandName").textContent = data.brand.name || "Meu Painel";
+      document.getElementById("brandSubtitle").textContent = data.brand.subtitle || "";
+      document.getElementById("sectionLabel").textContent = data.sectionLabel || "";
+      document.getElementById("footerStatus").textContent = data.footer.status || "";
+      document.getElementById("footerBrand").textContent = data.footer.brand || "";
+      document.getElementById("footerSync").textContent = data.footer.sync || "";
+    }
+
+    function renderResources() {
+      const container = document.getElementById("resourceBar");
+      container.innerHTML = "";
+
+      data.resources.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = "resource-card";
+        card.innerHTML = `
+          <div class="resource-top">
+            <div class="resource-meta">
+              <div class="resource-icon">${esc(item.icon)}</div>
+              <div>
+                <div class="resource-label">${esc(item.label)}</div>
+                <div class="resource-value">${esc(item.value)}</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="icon-btn" onclick="openResourceModal(${index})">✏️</button>
+              <button class="icon-btn" onclick="removeResource(${index})">🗑️</button>
+            </div>
+          </div>
+          <div class="resource-delta ${esc(item.deltaClass || '')}">${esc(item.delta || '')}</div>
+        `;
+        container.appendChild(card);
+      });
+
+      const addCard = document.createElement("div");
+      addCard.className = "resource-card";
+      addCard.style.justifyContent = "center";
+      addCard.style.alignItems = "center";
+      addCard.style.display = "flex";
+      addCard.innerHTML = `<button class="btn btn-primary" onclick="openResourceModal(null)">Adicionar recurso</button>`;
+      container.appendChild(addCard);
+    }
+
+    function badgeHtml(stat) {
+      if (!stat.badgeText) return "";
+      return `<span class="badge ${esc(stat.badgeClass || '')}">${esc(stat.badgeText)}</span>`;
+    }
+
+    function renderStatList(containerId, stats, moduleKey, area = "main") {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+
+      stats.forEach((stat, index) => {
+        const row = document.createElement("div");
+        row.className = "stat-row";
+        row.innerHTML = `
+          <div class="stat-left">
+            <div class="stat-label">${esc(stat.label)}</div>
+          </div>
+          <div class="stat-right">
+            <div class="stat-value">${esc(stat.value)}</div>
+            ${badgeHtml(stat)}
+            <button class="icon-btn" onclick="openStatModal('${moduleKey}','${area}',${index})">✏️</button>
+            <button class="icon-btn" onclick="removeStat('${moduleKey}','${area}',${index})">🗑️</button>
+          </div>
+        `;
+        container.appendChild(row);
+});
+    }
+
+    function renderModules() {
+      Object.keys(data.modules).forEach(key => {
+        const m = data.modules[key];
+
+        document.getElementById(key + "Icon").textContent = m.icon;
+        document.getElementById(key + "Name").textContent = m.name;
+        document.getElementById(key + "Status").textContent = m.statusText;
+        document.getElementById(key + "Status").className = "module-status " + m.statusClass;
+
+        document.getElementById(key + "ProgressLabel").textContent = m.progressLabel;
+        document.getElementById(key + "ProgressValue").textContent = m.progressValue + "%";
+        document.getElementById(key + "ProgressFill").style.width = m.progressValue + "%";
+        document.getElementById(key + "ProgressFill").className = "progress-fill " + m.progressClass;
+
+        renderStatList(key + "Stats", m.stats || [], key);
+
+        if (key === "tools") {
+          renderStatList("toolsLeftStats", m.stats || [], key, "left");
+          renderStatList("toolsRightStats", m.rightStats || [], key, "right");
+
+          document.getElementById("toolsRightProgressLabel").textContent = m.rightProgressLabel;
+          document.getElementById("toolsRightProgressFill").style.width = m.rightProgressValue + "%";
+document.getElementById("toolsRightProgressFill").className = "progress-fill " + m.rightProgressClass;
+        }
+      });
+    }
+
+    function renderTicker() {
+      const container = document.getElementById("tickerItems");
+      container.innerHTML = "";
+      data.ticker.forEach(t => {
+        const el = document.createElement("div");
+        el.className = "ticker-item";
+        el.textContent = t;
+        container.appendChild(el);
+      });
+    }
+
+    function renderAll() {
+      renderGeneral();
+      renderResources();
+      renderModules();
+      renderTicker();
+      saveData();
+    }
+
+    // ===== MODAIS =====
+
+    function openModal(title, contentHTML, onSave) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalBody").innerHTML = contentHTML;
+
+      const footer = document.getElementById("modalFooter");
+      footer.innerHTML = `
+        <button class="btn" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" id="modalSaveBtn">Salvar</button>
+      `;
+
+      document.getElementById("modalSaveBtn").onclick = onSave;
+      document.getElementById("modalOverlay").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("modalOverlay").classList.remove("open");
+    }
+
+    // ===== RESOURCES =====
+
+    function openResourceModal(index) {
+      const item = index !== null ? data.resources[index] : { icon:"", label:"", value:"", delta:"", deltaClass:"delta-up" };
+
+      openModal("Recurso", `
+        <div class="form-grid">
+          <div class="field"><label>Ícone</label><input id="f_icon" value="${esc(item.icon)}"></div>
+          <div class="field"><label>Título</label><input id="f_label" value="${esc(item.label)}"></div>
+          <div class="field"><label>Valor</label><input id="f_value" value="${esc(item.value)}"></div>
+          <div class="field"><label>Variação</label><input id="f_delta" value="${esc(item.delta)}"></div>
+          <div class="field full">
+            <label>Tipo</label>
+            <select id="f_class">
+              <option value="delta-up">Positivo</option>
+              <option value="delta-down">Negativo</option>
+            </select>
+          </div>
+        </div>
+      `, () => {
+        const newItem = {
+          icon: document.getElementById("f_icon").value,
+          label: document.getElementById("f_label").value,
+          value: document.getElementById("f_value").value,
+          delta: document.getElementById("f_delta").value,
+          deltaClass: document.getElementById("f_class").value
+        };
+
+        if (index !== null) data.resources[index] = newItem;
+        else data.resources.push(newItem);
+
+        saveData();
+        closeModal();
+        renderAll();
+        showNotice("Recurso salvo.");
+      });
+
+      setTimeout(() => {
+        document.getElementById("f_class").value = item.deltaClass;
+      });
+    }
+
+    function removeResource(i) {
+      data.resources.splice(i,1);
+      renderAll();
+    }
+
+    // ===== STATS =====
+
+    function openStatModal(moduleKey, area, index) {
+      let list = getStatList(moduleKey, area);
+
+      const item = index !== null ? list[index] : { label:"", value:"", badgeText:"", badgeClass:"" };
+
+      openModal("Indicador", `
+        <div class="form-grid">
+          <div class="field full"><label>Nome</label><input id="s_label" value="${esc(item.label)}"></div>
+          <div class="field"><label>Valor</label><input id="s_value" value="${esc(item.value)}"></div>
+          <div class="field"><label>Selo</label><input id="s_badge" value="${esc(item.badgeText)}"></div>
+          <div class="field full">
+            <label>Cor</label>
+            <select id="s_class">
+              <option value="">Nenhum</option>
+              <option value="badge-green">Verde</option>
+              <option value="badge-amber">Amarelo</option>
+              <option value="badge-red">Vermelho</option>
+              <option value="badge-blue">Azul</option>
+            </select>
+          </div>
+        </div>
+      `, () => {
+        const newItem = {
+          label: document.getElementById("s_label").value,
+          value: document.getElementById("s_value").value,
+          badgeText: document.getElementById("s_badge").value,
+          badgeClass: document.getElementById("s_class").value
+        };
+
+        if (index !== null) list[index] = newItem;
+        else list.push(newItem);
+
+        saveData();
+        closeModal();
+        renderAll();
+        showNotice("Indicador salvo.");
+      });
+
+      setTimeout(() => {
+        document.getElementById("s_class").value = item.badgeClass;
+      });
+    }
+
+    function removeStat(moduleKey, area, index) {
+      let list = getStatList(moduleKey, area);
+      list.splice(index,1);
+      renderAll();
+    }
+
+    function getStatList(moduleKey, area) {
+      if (moduleKey === "tools") {
+        if (area === "right") return data.modules.tools.rightStats;
+        return data.modules.tools.stats;
+      }
+      return data.modules[moduleKey].stats;
+    }
+
+function openModuleSettings(moduleKey) {
+  const mod = data.modules[moduleKey];
+
+  let extraFields = `
+    <div class="field"><label>Ícone</label><input id="m_icon" value="${esc(mod.icon)}"></div>
+    <div class="field"><label>Nome do módulo</label><input id="m_name" value="${esc(mod.name)}"></div>
+    <div class="field"><label>Status</label><input id="m_statusText" value="${esc(mod.statusText)}"></div>
+    <div class="field">
+      <label>Classe do status</label>
+      <select id="m_statusClass">
+        <option value="status-ok">Verde</option>
+        <option value="status-warn">Amarelo</option>
+        <option value="status-danger">Vermelho</option>
+      </select>
+    </div>
+    <div class="field"><label>Rótulo da barra</label><input id="m_progressLabel" value="${esc(mod.progressLabel)}"></div>
+    <div class="field"><label>Valor da barra (%)</label><input id="m_progressValue" type="number" min="0" max="100" value="${esc(mod.progressValue)}"></div>
+    <div class="field full">
+      <label>Cor da barra</label>
+      <select id="m_progressClass">
+        <option value="fill-blue">Azul</option>
+        <option value="fill-green">Verde</option>
+        <option value="fill-amber">Amarelo</option>
+        <option value="fill-red">Vermelho</option>
+      </select>
+    </div>
+  `;
+
+  if (moduleKey === "tools") {
+    extraFields += `
+      <div class="field"><label>Rótulo barra direita</label><input id="m_rightProgressLabel" value="${esc(mod.rightProgressLabel)}"></div>
+      <div class="field"><label>Valor barra direita (%)</label><input id="m_rightProgressValue" type="number" min="0" max="100" value="${esc(mod.rightProgressValue)}"></div>
+      <div class="field full">
+        <label>Cor barra direita</label>
+        <select id="m_rightProgressClass">
+          <option value="fill-blue">Azul</option>
+          <option value="fill-green">Verde</option>
+          <option value="fill-amber">Amarelo</option>
+          <option value="fill-red">Vermelho</option>
+        </select>
+      </div>
+    `;
+  }
+
+  openModal("Configurar módulo", `
+    <div class="form-grid">
+      ${extraFields}
+    </div>
+  `, () => {
+    mod.icon = document.getElementById("m_icon").value;
+    mod.name = document.getElementById("m_name").value;
+    mod.statusText = document.getElementById("m_statusText").value;
+    mod.statusClass = document.getElementById("m_statusClass").value;
+    mod.progressLabel = document.getElementById("m_progressLabel").value;
+    mod.progressValue = Number(document.getElementById("m_progressValue").value || 0);
+    mod.progressClass = document.getElementById("m_progressClass").value;
+
+    if (moduleKey === "tools") {
+      mod.rightProgressLabel = document.getElementById("m_rightProgressLabel").value;
+      mod.rightProgressValue = Number(document.getElementById("m_rightProgressValue").value || 0);
+      mod.rightProgressClass = document.getElementById("m_rightProgressClass").value;
+      document.getElementById("toolsRightProgressFill").className = "progress-fill " + mod.rightProgressClass;
+    }
+
+    saveData();
+    closeModal();
+    renderAll();
+    showNotice("Módulo salvo.");
+  });
+
+  setTimeout(() => {
+    document.getElementById("m_statusClass").value = mod.statusClass;
+    document.getElementById("m_progressClass").value = mod.progressClass;
+
+    if (moduleKey === "tools") {
+      document.getElementById("m_rightProgressClass").value = mod.rightProgressClass;
+    }
+  });
+}
+
+document.getElementById("editGeneralBtn").onclick = () => {
+  openModal("Editar painel", `
+    <div class="form-grid">
+      <div class="field"><label>Ícone da marca</label><input id="g_shield" value="${esc(data.brand.shield)}"></div>
+      <div class="field"><label>Nome do painel</label><input id="g_name" value="${esc(data.brand.name)}"></div>
+      <div class="field full"><label>Subtítulo</label><input id="g_subtitle" value="${esc(data.brand.subtitle)}"></div>
+      <div class="field full"><label>Título da seção</label><input id="g_section" value="${esc(data.sectionLabel)}"></div>
+      <div class="field"><label>Status do rodapé</label><input id="g_footerStatus" value="${esc(data.footer.status)}"></div>
+      <div class="field"><label>Marca no rodapé</label><input id="g_footerBrand" value="${esc(data.footer.brand)}"></div>
+      <div class="field full"><label>Texto de atualização</label><input id="g_footerSync" value="${esc(data.footer.sync)}"></div>
+    </div>
+  `, () => {
+    data.brand.shield = document.getElementById("g_shield").value;
+    data.brand.name = document.getElementById("g_name").value;
+    data.brand.subtitle = document.getElementById("g_subtitle").value;
+    data.sectionLabel = document.getElementById("g_section").value;
+    data.footer.status = document.getElementById("g_footerStatus").value;
+    data.footer.brand = document.getElementById("g_footerBrand").value;
+    data.footer.sync = document.getElementById("g_footerSync").value;
+
+    saveData();
+    closeModal();
+    renderAll();
+    showNotice("Painel salvo.");
+  });
+};
+
+document.getElementById("editTickerBtn").onclick = () => {
+  openModal("Editar avisos", `
+    <div class="field full">
+      <label>Um aviso por linha</label>
+      <textarea id="t_items">${esc(data.ticker.join("\n"))}</textarea>
+    </div>
+  `, () => {
+    data.ticker = document.getElementById("t_items").value
+      .split("\n")
+      .map(t => t.trim())
+      .filter(Boolean);
+
+    saveData();
+    closeModal();
+    renderAll();
+    showNotice("Avisos salvos.");
+  });
+};
+
+    // ===== INIT =====
+    document.getElementById("resetBtn").onclick = () => {
+      if(confirm("Resetar tudo?")){
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
+    };
+
+    document.getElementById("exportBtn").onclick = () => {
+      navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      showNotice("JSON copiado!");
+    };
+
+    renderAll();
+    </script>
+</body>
+</html>
